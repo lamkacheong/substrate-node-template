@@ -51,6 +51,7 @@ decl_error! {
 		ProofAlreadyExist,
 		ClaimNotExist,
 		NotClaimOwner,
+		ProofTooLong,
 	}
 }
 
@@ -69,6 +70,8 @@ decl_module! {
 		pub fn create_claim(origin, claim: Vec<u8>) -> dispatch::DispatchResult{
 			let sender = ensure_signed(origin)?;
 
+			ensure!(claim.len() <= 256, Error::<T>::ProofTooLong);
+
 			ensure!(!Proofs::<T>::contains_key(&claim), Error::<T>::ProofAlreadyExist);
 
 			Proofs::<T>::insert(&claim, (sender.clone(), frame_system::Module::<T>::block_number()));
@@ -82,6 +85,7 @@ decl_module! {
 		pub fn revoke_claim(origin, claim: Vec<u8>) -> dispatch::DispatchResult{
 			let sender = ensure_signed(origin)?;
 
+			ensure!(claim.len() <= 256, Error::<T>::ProofTooLong);
 			ensure!(Proofs::<T>::contains_key(&claim), Error::<T>::ClaimNotExist);
 
 			let (owner, _block_number) = Proofs::<T>::get(&claim);
@@ -99,6 +103,7 @@ decl_module! {
 		pub fn transfer_claim(origin, claim: Vec<u8>, dest: T::AccountId) -> dispatch::DispatchResult{
 			let sender = ensure_signed(origin)?;
 
+			ensure!(claim.len() <= 256, Error::<T>::ProofTooLong);
 			ensure!(Proofs::<T>::contains_key(&claim), Error::<T>::ClaimNotExist);
 
 			let (owner, _block_number) = Proofs::<T>::get(&claim);

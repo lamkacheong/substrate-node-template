@@ -97,3 +97,20 @@ fn transfer_tails_when_claim_not_owned(){
 		);
 	})
 }
+
+
+#[test]
+fn check_long_proof_works(){
+	new_test_ext().execute_with(|| {
+		let mut claim:Vec<u8> = vec![];
+		let mut i = 0;
+		while i < 260 {
+			i += 1;
+			claim.push(0);
+		}
+		assert_noop!(
+			PoeModule::create_claim(Origin::signed(1), claim.clone()),
+			Error::<Test>::ProofTooLong
+		);
+	})
+}
