@@ -19,6 +19,7 @@ parameter_types! {
 	pub const MaximumBlockWeight: Weight = 1024;
 	pub const MaximumBlockLength: u32 = 2 * 1024;
 	pub const AvailableBlockRatio: Perbill = Perbill::from_percent(75);
+	pub const MaxProofLength: u8 = 255;
 }
 
 impl system::Trait for Test {
@@ -51,6 +52,7 @@ impl system::Trait for Test {
 
 impl Trait for Test {
 	type Event = ();
+	type MaxProofLength = MaxProofLength;
 }
 
 pub type PoeModule = Module<Test>;

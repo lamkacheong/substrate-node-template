@@ -6,10 +6,12 @@
 
 use frame_support::{
 	decl_module, decl_storage, decl_event, decl_error, dispatch,
-	ensure
+	ensure,
+	traits::Get,
 };
 use frame_system::ensure_signed;
 use sp_std::prelude::*;
+
 
 #[cfg(test)]
 mod mock;
@@ -21,6 +23,7 @@ mod tests;
 pub trait Trait: frame_system::Trait {
 	/// Because this pallet emits events, it depends on the runtime's definition of an event.
 	type Event: From<Event<Self>> + Into<<Self as frame_system::Trait>::Event>;
+	type MaxProofLength: Get<u8>;
 }
 
 // The pallet's runtime storage items.
@@ -70,7 +73,7 @@ decl_module! {
 		pub fn create_claim(origin, claim: Vec<u8>) -> dispatch::DispatchResult{
 			let sender = ensure_signed(origin)?;
 
-			ensure!(claim.len() <= 256, Error::<T>::ProofTooLong);
+			ensure!(claim.len() <= T::MaxProofLength::get().into(), Error::<T>::ProofTooLong);
 
 			ensure!(!Proofs::<T>::contains_key(&claim), Error::<T>::ProofAlreadyExist);
 
@@ -85,7 +88,7 @@ decl_module! {
 		pub fn revoke_claim(origin, claim: Vec<u8>) -> dispatch::DispatchResult{
 			let sender = ensure_signed(origin)?;
 
-			ensure!(claim.len() <= 256, Error::<T>::ProofTooLong);
+			ensure!(claim.len() <= T::MaxProofLength::get().into(), Error::<T>::ProofTooLong);
 			ensure!(Proofs::<T>::contains_key(&claim), Error::<T>::ClaimNotExist);
 
 			let (owner, _block_number) = Proofs::<T>::get(&claim);
@@ -103,7 +106,7 @@ decl_module! {
 		pub fn transfer_claim(origin, claim: Vec<u8>, dest: T::AccountId) -> dispatch::DispatchResult{
 			let sender = ensure_signed(origin)?;
 
-			ensure!(claim.len() <= 256, Error::<T>::ProofTooLong);
+			ensure!(claim.len() <= T::MaxProofLength::get().into(), Error::<T>::ProofTooLong);
 			ensure!(Proofs::<T>::contains_key(&claim), Error::<T>::ClaimNotExist);
 
 			let (owner, _block_number) = Proofs::<T>::get(&claim);

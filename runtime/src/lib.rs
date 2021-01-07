@@ -266,8 +266,13 @@ impl pallet_template::Trait for Runtime {
 	type Event = Event;
 }
 
+parameter_types! {
+	pub const MaxProofLength:u8 = 255;
+}
+
 impl poe::Trait for Runtime {
 	type Event = Event;
+	type MaxProofLength = MaxProofLength;
 }
 
 // Create the runtime by composing the FRAME pallets that were previously configured.
