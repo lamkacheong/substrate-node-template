@@ -5,7 +5,7 @@
 /// https://substrate.dev/docs/en/knowledgebase/runtime/frame
 
 use frame_support::{
-	decl_module, decl_storage, decl_event, decl_error, dispatch, traits::Get,
+	decl_module, decl_storage, decl_event, decl_error, dispatch,
 	ensure
 };
 use frame_system::ensure_signed;
@@ -29,7 +29,7 @@ decl_storage! {
 	// A unique name is used to ensure that the pallet's storage items are isolated.
 	// This name may be updated, but each pallet in the runtime must use a unique name.
 	// ---------------------------------vvvvvvvvvvvvvv
-	trait Store for Module<T: Trait> as TemplateModule {
+	trait Store for Module<T: Trait> as PoeModule {
 		// Learn more about declaring storage items:
 		// https://substrate.dev/docs/en/knowledgebase/runtime/storage#declaring-storage-items
 		Proofs get(fn proofs): map hasher(blake2_128_concat) Vec<u8> => (T::AccountId, T::BlockNumber);
@@ -94,5 +94,22 @@ decl_module! {
 
 			Ok(())
 		}
+
+		#[weight = 0]
+		pub fn transfer_claim(origin, claim: Vec<u8>, dest: T::AccountId) -> dispatch::DispatchResult{
+			let sender = ensure_signed(origin)?;
+
+			ensure!(Proofs::<T>::contains_key(&claim), Error::<T>::ClaimNotExist);
+
+			let (owner, _block_number) = Proofs::<T>::get(&claim);
+
+			ensure!(owner == sender, Error::<T>::NotClaimOwner);
+
+			Proofs::<T>::insert(&claim, (dest, frame_system::Module::<T>::block_number()));
+
+			Ok(())
+		}
+
+
 	}
 }
