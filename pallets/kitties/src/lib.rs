@@ -1,14 +1,12 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use codec::{Encode, Decode};
-use frame_support::{decl_module, decl_storage, decl_event, decl_error, ensure, StorageValue, StorageMap, dispatch, traits::Get,
+use frame_support::{decl_module, decl_storage, decl_event, decl_error, ensure, StorageValue, StorageMap,
 	traits::Randomness,
 };
 use sp_runtime::{
-	RuntimeDebug, ConsensusEngineId, DispatchResult, DispatchError, traits::{
-		MaybeSerializeDeserialize, AtLeast32Bit, Saturating, TrailingZeroInput, Bounded, Zero,
-		BadOrigin, AtLeast32BitUnsigned,
-		Member,MaybeSerialize,MaybeDisplay,
+	DispatchError, traits::{
+		AtLeast32Bit, Member, MaybeSerialize, MaybeDisplay,
 	},
 };
 use sp_io::hashing::blake2_128;
@@ -118,12 +116,12 @@ decl_module! {
 			let kitty = Kitty(dna);
 			Self::insert_kitty(&sender, kitty_id, kitty);
 			Self::deposit_event(RawEvent::KittyCreated(sender, kitty_id));
-
 		}
 
 		#[weight = 0]
 		pub fn transfer(origin, to: T::AccountId, kitty_id: KittyIndex) {
 			let sender = ensure_signed(origin)?;
+			Self::kitties(kitty_id).ok_or(Error::<T>::InvalidKittyId)?;
 			<KittyOwners<T>>::insert(kitty_id, to.clone());
 			Self::deposit_event(RawEvent::Transferred(sender, to, kitty_id));
 		}
@@ -138,6 +136,7 @@ decl_module! {
 }
 
 #[cfg(test)]
-mod tests {
-	use super::*;
-}
+mod test;
+
+#[cfg(test)]
+mod mock;

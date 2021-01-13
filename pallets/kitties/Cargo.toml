@@ -34,6 +34,8 @@ sp-core = { default-features = false, version = '2.0.0' }
 sp-runtime = { default-features = false, version = '2.0.0' }
 sp-io = { default-features = false, version = '2.0.0' }
 sp-std = { default-features = false, version = '2.0.0' }
+pallet-randomness-collective-flip = { default-features = false, version = '2.0.0' }
+
 
 [features]
 default = ['std']
@@ -45,4 +47,5 @@ std = [
     'sp-runtime/std',
     'sp-io/std',
     'sp-std/std',
+    'pallet-randomness-collective-flip/std',
 ]
