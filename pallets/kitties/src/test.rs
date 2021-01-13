@@ -44,6 +44,22 @@ fn create_kitty_works(){
 }
 
 #[test]
+//创建kitty,超过数量范围
+fn create_kitty_exceed_maximun(){
+	new_test_ext().execute_with(|| {
+		run_to_block(10);
+
+		//模拟kitty数量达到最大的情况
+		KittiesCount::put(KittyIndex::max_value());
+		assert_noop!(
+			KittiesModule::create(Origin::signed(1)),
+			Error::<Test>::KittiesCountOverflow
+		);
+
+	})
+}
+
+#[test]
 //正常转移kitty
 fn transfer_kitty_works() {
 	new_test_ext().execute_with(|| {
@@ -90,6 +106,7 @@ fn transfer_kitty_with_nonexist_kitty() {
 }
 
 #[test]
+//正常breed
 fn breed_works(){
 	new_test_ext().execute_with(|| {
 		run_to_block(10);
@@ -101,11 +118,26 @@ fn breed_works(){
 		);
 
 		assert_eq!(KittiesModule::kitties_count(), 3);
+
 		assert_eq!(KittiesModule::kitty_owner(2), Some(1));
+
+		//对all_kitties的测试
+		assert_eq!(KittiesModule::all_kitties(), vec![0,1,2]);
+
+		//对parent的测试
+		assert_eq!(KittiesModule::parents(2,1), true);
+		assert_eq!(KittiesModule::parents(2,0), true);
+		//对children的测试
+		assert_eq!(KittiesModule::children(0,2), true);
+		assert_eq!(KittiesModule::children(1,2), true);
+		//对breeded的测试
+		assert_eq!(KittiesModule::breeded(0,1), true);
+		assert_eq!(KittiesModule::breeded(1,0), true);
 	})
 }
 
 #[test]
+//breed的parent传入同一个id
 fn breed_with_same_parent(){
 	new_test_ext().execute_with(|| {
 		run_to_block(10);
