@@ -4,9 +4,15 @@ use codec::{Encode, Decode};
 use frame_support::{decl_module, decl_storage, decl_event, decl_error, ensure, StorageValue, StorageMap, dispatch, traits::Get,
 	traits::Randomness,
 };
+use sp_runtime::{
+	RuntimeDebug, ConsensusEngineId, DispatchResult, DispatchError, traits::{
+		MaybeSerializeDeserialize, AtLeast32Bit, Saturating, TrailingZeroInput, Bounded, Zero,
+		BadOrigin, AtLeast32BitUnsigned,
+		Member,MaybeSerialize,MaybeDisplay,
+	},
+};
 use sp_io::hashing::blake2_128;
 use frame_system::ensure_signed;
-use sp_runtime::DispatchError;
 use sp_std::prelude::*;
 
 type KittyIndex = u32;
@@ -16,6 +22,8 @@ pub struct Kitty(pub [u8; 16]);
 pub trait Trait: frame_system::Trait {
 	type Event: From<Event<Self>> + Into<<Self as frame_system::Trait>::Event>;
 	type Randomness: Randomness<Self::Hash>;
+	type KittyIndex: Clone + Eq + Member + MaybeSerialize + Default + MaybeDisplay + AtLeast32Bit
+	+ Copy;
 }
 
 // The pallet's runtime storage items.
