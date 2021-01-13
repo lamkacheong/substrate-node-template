@@ -32,6 +32,9 @@ fn create_kitty_works(){
 		assert_eq!(KittiesModule::kitties_count(), 1);
 		assert_eq!(KittiesModule::kitty_owner(0), Some(1));
 
+		assert_eq!(<UserKitties<Test>>::iter_prefix_values(1).collect::<Vec<KittyIndex>>(),vec![0]);
+
+
 		assert_eq!(
 			System::events(),
 			vec![EventRecord {
@@ -121,18 +124,28 @@ fn breed_works(){
 
 		assert_eq!(KittiesModule::kitty_owner(2), Some(1));
 
-		//对all_kitties的测试
-		assert_eq!(KittiesModule::all_kitties(), vec![0,1,2]);
+		//对user_kitties的测试
+		//assert_eq!(UserKitties().iter_prefix_values(1).collect(),vec![0,1,2]);
+		assert_eq!(<UserKitties<Test>>::iter_prefix_values(1).collect::<Vec<KittyIndex>>(),vec![0,2,1]);
 
 		//对parent的测试
-		assert_eq!(KittiesModule::parents(2,1), true);
-		assert_eq!(KittiesModule::parents(2,0), true);
+		assert_eq!(KittiesModule::parents(2,1), 1);
+		assert_eq!(KittiesModule::parents(2,0), 0);
+
+		assert_eq!(Parents::iter_prefix_values(2).collect::<Vec<KittyIndex>>(),vec![0,1]);
 		//对children的测试
-		assert_eq!(KittiesModule::children(0,2), true);
-		assert_eq!(KittiesModule::children(1,2), true);
+		assert_eq!(KittiesModule::children(0,2), 2);
+		assert_eq!(KittiesModule::children(1,2), 2);
+		assert_eq!(Children::iter_prefix_values(0).collect::<Vec<KittyIndex>>(),vec![2]);
+		assert_eq!(Children::iter_prefix_values(1).collect::<Vec<KittyIndex>>(),vec![2]);
+
 		//对breeded的测试
-		assert_eq!(KittiesModule::breeded(0,1), true);
-		assert_eq!(KittiesModule::breeded(1,0), true);
+		assert_eq!(KittiesModule::breeded(0,1), 1);
+		assert_eq!(KittiesModule::breeded(1,0), 0);
+
+		assert_eq!(Breeded::iter_prefix_values(0).collect::<Vec<KittyIndex>>(),vec![1]);
+		assert_eq!(Breeded::iter_prefix_values(1).collect::<Vec<KittyIndex>>(),vec![0]);
+
 	})
 }
 

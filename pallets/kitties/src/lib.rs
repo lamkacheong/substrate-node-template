@@ -34,10 +34,10 @@ decl_storage! {
 		pub Kitties get(fn kitties):map hasher(blake2_128_concat) KittyIndex => Option<Kitty>;
 		pub KittiesCount get(fn kitties_count): KittyIndex;
 		pub KittyOwners get(fn kitty_owner): map hasher(blake2_128_concat) KittyIndex => Option<T::AccountId>;
-		pub AllKitties get(fn all_kitties): Vec<KittyIndex>;
-		pub Parents get(fn parents):double_map hasher(blake2_128_concat) KittyIndex, hasher(blake2_128_concat) KittyIndex => bool;
-		pub Children get(fn children):double_map hasher(blake2_128_concat) KittyIndex, hasher(blake2_128_concat) KittyIndex => bool;
-		pub Breeded get(fn breeded):double_map hasher(blake2_128_concat) KittyIndex, hasher(blake2_128_concat) KittyIndex => bool;
+		pub UserKitties get(fn user_kitties): double_map hasher(blake2_128_concat) T::AccountId, hasher(blake2_128_concat) KittyIndex => KittyIndex;
+		pub Parents get(fn parents):double_map hasher(blake2_128_concat) KittyIndex, hasher(blake2_128_concat) KittyIndex => KittyIndex;
+		pub Children get(fn children):double_map hasher(blake2_128_concat) KittyIndex, hasher(blake2_128_concat) KittyIndex => KittyIndex;
+		pub Breeded get(fn breeded):double_map hasher(blake2_128_concat) KittyIndex, hasher(blake2_128_concat) KittyIndex => KittyIndex;
 	}
 }
 
@@ -64,7 +64,7 @@ impl<T: Trait> Module<T> {
 		Kitties::insert(kitty_id, kitty);
 		KittiesCount::put(kitty_id + 1);
 		<KittyOwners<T>>::insert(kitty_id, owner);
-		AllKitties::append(kitty_id);
+		<UserKitties<T>>::insert(owner, kitty_id, kitty_id);
 	}
 	fn next_kitty_id() -> sp_std::result::Result<KittyIndex, DispatchError> {
 		let kitty_id = KittiesCount::get();
@@ -103,12 +103,12 @@ impl<T: Trait> Module<T> {
 		Self::insert_kitty(sender, kitty_id, Kitty(new_dna));
 
 		//处理关于breed的关系
-		Parents::insert(kitty_id, kitty_id_1, true);
-		Parents::insert(kitty_id, kitty_id_2, true);
-		Children::insert(kitty_id_1, kitty_id, true);
-		Children::insert(kitty_id_2, kitty_id, true);
-		Breeded::insert(kitty_id_1, kitty_id_2, true);
-		Breeded::insert(kitty_id_2, kitty_id_1, true);
+		Parents::insert(kitty_id, kitty_id_1, kitty_id_1);
+		Parents::insert(kitty_id, kitty_id_2, kitty_id_2);
+		Children::insert(kitty_id_1, kitty_id, kitty_id);
+		Children::insert(kitty_id_2, kitty_id, kitty_id);
+		Breeded::insert(kitty_id_1, kitty_id_2, kitty_id_2);
+		Breeded::insert(kitty_id_2, kitty_id_1, kitty_id_1);
 
 		Ok(kitty_id)
 	}
@@ -137,6 +137,9 @@ decl_module! {
 			let sender = ensure_signed(origin)?;
 			Self::kitties(kitty_id).ok_or(Error::<T>::InvalidKittyId)?;
 			<KittyOwners<T>>::insert(kitty_id, to.clone());
+
+			<UserKitties<T>>::insert(&to, kitty_id, kitty_id);
+			<UserKitties<T>>::remove(&sender, kitty_id);
 			Self::deposit_event(RawEvent::Transferred(sender, to, kitty_id));
 		}
 
