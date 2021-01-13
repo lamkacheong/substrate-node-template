@@ -40,7 +40,7 @@ pub use frame_support::{
 
 /// Import the template pallet.
 pub use pallet_template;
-
+pub use pallet_kitties;
 /// An index to a block.
 pub type BlockNumber = u32;
 
@@ -66,6 +66,8 @@ pub type Hash = sp_core::H256;
 
 /// Digest item type.
 pub type DigestItem = generic::DigestItem<Hash>;
+
+pub type KittyIndex = u32;
 
 /// Opaque types. These are used by the CLI to instantiate machinery that don't need to know
 /// the specifics of the runtime. They can then be made to be agnostic over specific formats
@@ -190,6 +192,7 @@ impl frame_system::Trait for Runtime {
 	type AccountData = pallet_balances::AccountData<Balance>;
 	/// Weight information for the extrinsics of this pallet.
 	type SystemWeightInfo = ();
+	
 }
 
 impl pallet_aura::Trait for Runtime {
@@ -275,6 +278,12 @@ impl poe::Trait for Runtime {
 	type MaxProofLength = MaxProofLength;
 }
 
+impl pallet_kitties::Trait for Runtime {
+	type Event = Event;
+	type Randomness = RandomnessCollectiveFlip;
+	type KittyIndex = KittyIndex;
+}
+
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
 	pub enum Runtime where
@@ -293,6 +302,8 @@ construct_runtime!(
 		// Include the custom logic from the template pallet in the runtime.
 		TemplateModule: pallet_template::{Module, Call, Storage, Event<T>},
 		PoeModule: poe::{Module, Call, Storage, Event<T>},
+		KittiesModule: pallet_kitties::{Module, Call, Storage, Event<T>},
+
 	}
 );
 
